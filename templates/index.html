@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Algoritmo de Dijkstra</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <h1>Algoritmo de Dijkstra</h1>
+    <form id="graph-form" method="POST">
+        <div class="form-group">
+            <label for="num_nodos">Número de nodos:</label>
+            <input type="number" id="num_nodos" name="num_nodos" required><br><br>
+        </div>
+
+        <div id="nodos-container"></div>
+
+        <div class="form-group">
+            <label for="nodo_inicial">Nodo inicial:</label>
+            <input type="number" id="nodo_inicial" name="nodo_inicial" required><br><br>
+        </div>
+
+        <div class="form-group">
+            <label for="nodo_final">Nodo final:</label>
+            <input type="number" id="nodo_final" name="nodo_final" required><br><br>
+        </div>
+
+        <button type="submit">Calcular</button>
+    </form>
+
+    <div id="resultado"></div>
+
+    <script>
+        document.getElementById('num_nodos').addEventListener('change', function() {
+            const numNodos = parseInt(this.value);
+            const container = document.getElementById('nodos-container');
+            container.innerHTML = '';
+            
+            for (let i = 0; i < numNodos; i++) {
+                let div = document.createElement('div');
+                div.classList.add('form-group');
+                
+                div.innerHTML = `
+                    <label for="num_adyacentes_${i}">Número de adyacentes para el nodo ${i}:</label>
+                    <input type="number" id="num_adyacentes_${i}" name="num_adyacentes_${i}" required><br><br>
+                    <div id="adyacentes_${i}_container"></div>
+                `;
+                container.appendChild(div);
+
+                document.getElementById(`num_adyacentes_${i}`).addEventListener('change', function() {
+                    const numAdyacentes = parseInt(this.value);
+                    const adyacentesContainer = document.getElementById(`adyacentes_${i}_container`);
+                    adyacentesContainer.innerHTML = '';
+
+                    for (let j = 0; j < numAdyacentes; j++) {
+                        let adyacenteDiv = document.createElement('div');
+                        adyacenteDiv.innerHTML = `
+                            <label for="adyacente_${i}_${j}_nodo">Nodo adyacente:</label>
+                            <input type="number" id="adyacente_${i}_${j}_nodo" name="adyacente_${i}_${j}_nodo" required>
+                            <label for="adyacente_${i}_${j}_peso">Peso:</label>
+                            <input type="number" id="adyacente_${i}_${j}_peso" name="adyacente_${i}_${j}_peso" required><br><br>
+                        `;
+                        adyacentesContainer.appendChild(adyacenteDiv);
+                    }
+                });
+            }
+        });
+
+        document.getElementById('graph-form').onsubmit = async function(event) {
+            event.preventDefault();
+
+            const formData = new FormData(this);
+            const response = await fetch('/calcular', {
+                method: 'POST',
+                body: formData
+            });
+
+            const data = await response.json();
+            document.getElementById('resultado').innerHTML = `
+                <h2>Resultado:</h2>
+                <p>El camino más corto es: ${data.camino}</p>
+                <p>La distancia total es: ${data.distancia}</p>
+                <h2>Visualización Gráfica:</h2>
+                <img src="data:image/png;base64,${data.imagen_base64}" alt="Grafo con el camino más corto">
+            `;
+        };
+    </script>
+</body>
+</html>
